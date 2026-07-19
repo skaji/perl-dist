@@ -931,7 +931,7 @@ package App {
         }
 
         $|++;
-        say "---> do you want to proceed to release?";
+        say "---> do you want to proceed to release? press CTRL+C to stop.";
         my $answer = <STDIN>;
 
         my $tag_name = $next_version . ($trial ? "-TRIAL" : "");
