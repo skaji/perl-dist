@@ -647,13 +647,13 @@ package ModuleFile {
     }
     sub version ($self) {
         my ($first) = read_file $self->{path};
-        my ($version) = $first =~ /^package \S+ (v\d\.\d\.\d)/;
+        my ($version) = $first =~ /^package \S+ (v\d+\.\d+\.\d+)/;
         $version || "";
     }
     sub bump_version ($self, $new_version, $trial) {
         rewrite_file $self->{path}, sub ($lines, $fh) {
             for my $line ($lines->@*) {
-                $line =~ s/^package (\S+) (?:v\d\.\d\.\d)/package $1 $new_version/;
+                $line =~ s/^package (\S+) (?:v\d+\.\d+\.\d+)/package $1 $new_version/;
                 $line =~ s/^our \$TRIAL .*/our \$TRIAL = $trial;\n/s;
             }
             print {$fh} $lines->@*;
