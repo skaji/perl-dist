@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!perl
 use v5.44;
 
 my %TEMPLATE = (
@@ -521,15 +521,13 @@ my %TEMPLATE = (
         strategy:
           matrix:
             perl-version:
-              - '5.24.4'
+              - '5.24'
               - 'latest'
         steps:
           - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-          - name: Setup perl
-            run: |
-              curl -fsSL https://github.com/skaji/cpm-test/releases/download/0.01/ubuntu-24.04-perl-${{ matrix.perl-version }}.tar.xz | tar xJf - -C /tmp
-              echo /tmp/perl-${{ matrix.perl-version }}/bin >> $GITHUB_PATH
-          - run: perl -V
+          - uses: shogo82148/actions-setup-perl@3d3cb73ca65d657a809d97eab324d4e4f140bf5e # v1.42.0
+            with:
+              perl-version: ${{ matrix.perl-version }}
           - name: Install Dependencies
             run: curl -fsSL https://raw.githubusercontent.com/skaji/cpm/main/cpm | perl - install -g --top-level-phase runtime,test,develop --top-level-relationship requires,recommends --show-build-log-on-failure
           - run: prove -lr t
@@ -748,6 +746,14 @@ package App {
         bless {}, $class;
     }
 
+    my sub load_config ($self) {
+        if (my ($path) = grep -f, "./maint/perl-dist-config.pl", "./author/perl-dist-config.pl") {
+            my $config = do $path;
+            return $config;
+        }
+        return +{};
+    }
+
     my sub module_files ($self) {
         my $git = Git->new;
         my ($ok, $all) = $git->run("ls-files", "-z");
@@ -901,6 +907,7 @@ package App {
     }
 
     sub cmd_release ($self) {
+        my $config = $self->&load_config;
         my $git = Git->new;
 
         my $trial = $ENV{TRIAL} ? 1 : 0;
@@ -929,6 +936,11 @@ package App {
         $git->safe_run("add", "README.md", "META.json", "Changes", "lib");
         if ($git->has_untracked_files || $git->has_unstaged_tracked_files) {
             die "---> error: there are untracked files or unstaged tracked files.\n";
+        }
+
+        if (my $before_release = $config->{before_release}) {
+            warn "---> running before_release\n";
+            $before_release->({ version => $next_version, trial => $trial });
         }
 
         $|++;
