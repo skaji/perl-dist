@@ -1,0 +1,18 @@
+{
+  "dynamic_config": 0,
+  "meta-spec": {
+    "version": 2
+  },
+  "name": "_",
+  "prereqs": {
+    "runtime": {
+      "requires": {
+        "IPC::Run3": "0",
+        "Pod::Markdown": "0",
+        "perl": "v5.44"
+      }
+    }
+  },
+  "version": "1",
+  "x_static_install": 1
+}
