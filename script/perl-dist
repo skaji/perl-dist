@@ -569,8 +569,8 @@ my %TEMPLATE = (
             run: echo dist=$(jq -r '"\(.name)-\(.version)\(if .release_status == "stable" then "" else "-TRIAL" end)"' META.json) >> $GITHUB_OUTPUT
           - name: Generate tarball
             run: |
-              git archive --format=tar \\
-                --prefix=${{ steps.var.outputs.dist }}/ \\
+              git archive --format=tar \
+                --prefix=${{ steps.var.outputs.dist }}/ \
                 'HEAD^{tree}' | gzip -n -9 > ${{ steps.var.outputs.dist }}.tar.gz
           - uses: actions/attest@v4
             id: attest
@@ -578,8 +578,8 @@ my %TEMPLATE = (
               subject-path: ${{ steps.var.outputs.dist }}.tar.gz
           - name: Create release
             run: |
-              gh release create --repo ${{ github.repository }} ${{ github.ref_name }} \\
-                --notes "Artifact attestation: ${{ steps.attest.outputs.attestation-url }}" \\
+              gh release create --repo ${{ github.repository }} ${{ github.ref_name }} \
+                --notes "Artifact attestation: ${{ steps.attest.outputs.attestation-url }}" \
                 ${{ steps.var.outputs.dist }}.tar.gz
             env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
