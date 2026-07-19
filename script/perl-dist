@@ -838,7 +838,10 @@ package App {
             x_static_install => 1,
             author => [ "$user <$email>" ],
             license => [ "perl_5" ],
-            prereqs => { runtime => { requires => { perl => "v5.24.0" } } },
+            prereqs => {
+                configure => { requires => { "Module::Build::Tiny" => "0.053" } },
+                runtime => { requires => { perl => "v5.24.0" } },
+            },
             resources => {
                 bugtracker => {
                     web => "https://github.com/$github_user/perl-$dist/issues",
