@@ -764,7 +764,13 @@ package App {
                 push @file, ModuleFile->new($file);
             }
         }
-        sort { $b->version cmp $a->version } sort { $a->path cmp $b->path } @file;
+        @file;
+    }
+
+    my sub main_module_file ($self) {
+        my $name = CPAN::Meta->load_file("META.json")->name;
+        my $path = ( join "/", ("lib", split /-/, $name) ) . ".pm";
+        ModuleFile->new($path);
     }
 
     my sub provides ($self) {
@@ -785,7 +791,7 @@ package App {
             }
         }
 
-        my ($main_module_file) = $self->&module_files;
+        my $main_module_file = $self->&main_module_file;
         open my $in_fh, "<", $main_module_file->path or die;
         open my $out_fh, ">", "README.md" or die;
         print {$out_fh} "<!-- This is a generated file. -->\n\n";
@@ -800,7 +806,7 @@ package App {
             $meta->{version} = $next_version;
             $meta->{release_status} = $trial ? "testing" : "stable";
         }
-        my ($main_module_file) = $self->&module_files;
+        my $main_module_file = $self->&main_module_file;
         $meta->{abstract} = $main_module_file->abstract;
         $meta->{provides} = $self->&provides;
         my %author = map { ($_, 1) } $meta->{author}->@*;
