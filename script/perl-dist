@@ -524,28 +524,28 @@ my %TEMPLATE = (
               - '5.24'
               - 'latest'
         steps:
-          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: shogo82148/actions-setup-perl@3d3cb73ca65d657a809d97eab324d4e4f140bf5e # v1.42.0
+          - uses: actions/checkout@v7
+          - uses: shogo82148/actions-setup-perl@v1
             with:
               perl-version: ${{ matrix.perl-version }}
           - name: Install Dependencies
-            run: curl -fsSL https://raw.githubusercontent.com/skaji/cpm/main/cpm | perl - install -g --top-level-phase runtime,test,develop --top-level-relationship requires,recommends --show-build-log-on-failure
+            run: curl -fsSL https://github.com/skaji/cpm/releases/latest/download/cpm | perl - install -g --top-level-phase runtime,test,develop --top-level-relationship requires,recommends --show-build-log-on-failure
           - run: prove -lr t
       test-macos:
         runs-on: macos-latest
         steps:
-          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          - uses: actions/checkout@v7
           - run: /usr/bin/perl -V
           - name: Install Dependencies
-            run: curl -fsSL https://raw.githubusercontent.com/skaji/cpm/main/cpm | sudo -H /usr/bin/perl - install -g --top-level-phase runtime,test,develop --top-level-relationship requires,recommends --show-build-log-on-failure
+            run: curl -fsSL https://github.com/skaji/cpm/releases/latest/download/cpm | sudo -H /usr/bin/perl - install -g --top-level-phase runtime,test,develop --top-level-relationship requires,recommends --show-build-log-on-failure
           - run: /usr/bin/prove -lr t
       test-windows:
         runs-on: windows-latest
         steps:
-          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          - uses: actions/checkout@v7
           - run: perl -V
           - name: Install Dependencies
-            run: curl -fsSL https://raw.githubusercontent.com/skaji/cpm/main/cpm | perl - install -g --top-level-phase runtime,test,develop --top-level-relationship requires,recommends --show-build-log-on-failure
+            run: curl -fsSL https://github.com/skaji/cpm/releases/latest/download/cpm | perl - install -g --top-level-phase runtime,test,develop --top-level-relationship requires,recommends --show-build-log-on-failure
           - run: prove -lr t
 
       release:
@@ -561,7 +561,7 @@ my %TEMPLATE = (
           artifact-metadata: write # actions/attest
           contents: write # gh release
         steps:
-          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          - uses: actions/checkout@v7
           - name: Prepare variables
             id: var
             run: echo dist=$(jq -r '"\(.name)-\(.version)\(if .release_status == "stable" then "" else "-TRIAL" end)"' META.json) >> $GITHUB_OUTPUT
@@ -570,7 +570,7 @@ my %TEMPLATE = (
               git archive --format=tar \
                 --prefix=${{ steps.var.outputs.dist }}/ \
                 'HEAD^{tree}' | gzip -n -9 > ${{ steps.var.outputs.dist }}.tar.gz
-          - uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
+          - uses: actions/attest@v4
             id: attest
             with:
               subject-path: ${{ steps.var.outputs.dist }}.tar.gz
@@ -581,7 +581,7 @@ my %TEMPLATE = (
                 ${{ steps.var.outputs.dist }}.tar.gz
             env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          - uses: skaji/action-pause-upload@5a97e01abbc706d80964d6ea1e52c43293b4d8a5 # v1.0.0
+          - uses: skaji/action-pause-upload@v1
             with:
               files: ${{ steps.var.outputs.dist }}.tar.gz
               pause-token: ${{ secrets.PAUSE_TOKEN }}
@@ -802,6 +802,7 @@ package App {
 
     my sub build_meta ($self, $next_version = 0, $trial = 0) {
         my $meta = CPAN::Meta->load_file("META.json")->as_struct;
+        delete $meta->{generated_by};
         if ($next_version) {
             $meta->{version} = $next_version;
             $meta->{release_status} = $trial ? "testing" : "stable";
@@ -867,7 +868,6 @@ package App {
                 },
             },
             x_spdx_expression => "Artistic-1.0-Perl OR GPL-1.0-or-later",
-            x_generated_by_perl => "$^V",
         };
         CPAN::Meta->create($meta)->save("META.json");
 
